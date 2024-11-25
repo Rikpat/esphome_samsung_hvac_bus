@@ -43,6 +43,21 @@ namespace esphome
                 mqtt_client->connect();
 
 #elif defined(USE_ESP32)
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+            if (mqtt_client == nullptr)
+            {
+                esp_mqtt_client_config_t mqtt_cfg = {};
+                mqtt_cfg.broker.address.hostname = host.c_str();
+                mqtt_cfg.broker.address.port = port;
+                if (!username.empty())
+                {
+                    mqtt_cfg.credentials.username = username.c_str();
+                    mqtt_cfg.credentials.password = password.c_str();
+                }
+                mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
+                esp_mqtt_client_start(mqtt_client);
+            }
+#else
             if (mqtt_client == nullptr)
             {
                 esp_mqtt_client_config_t mqtt_cfg = {};
@@ -56,6 +71,7 @@ namespace esphome
                 mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
                 esp_mqtt_client_start(mqtt_client);
             }
+#endif
 #endif
         }
 
